@@ -1,0 +1,113 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="2.0" xmlns:edmx="http://schemas.microsoft.com/ado/2008/10/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+    <Schema Namespace="PushModel.Store" Alias="Self" Provider="System.Data.SqlClient" ProviderManifestToken="2008" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns="http://schemas.microsoft.com/ado/2009/02/edm/ssdl">
+        <EntityContainer Name="PushModelStoreContainer">
+          <EntitySet Name="DeviceTokens" EntityType="PushModel.Store.DeviceTokens" store:Type="Tables" Schema="dbo" />
+          <EntitySet Name="LastDeals" EntityType="PushModel.Store.LastDeals" store:Type="Tables" Schema="dbo" />
+        </EntityContainer>
+        <EntityType Name="DeviceTokens">
+          <Key>
+            <PropertyRef Name="Token" />
+          </Key>
+          <Property Name="Token" Type="nvarchar" Nullable="false" MaxLength="64" />
+          <Property Name="AppName" Type="nvarchar" Nullable="false" MaxLength="25" />
+          <Property Name="Development" Type="bit" Nullable="false" />
+          <Property Name="BadgeCount" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="LastDeals">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="int" Nullable="false" StoreGeneratedPattern="Identity" />
+          <Property Name="headline" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="body" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="image" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="isExpired" Type="bit" Nullable="false" />
+          <Property Name="datePosted" Type="datetime" Nullable="false" />
+        </EntityType>
+      </Schema></edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema xmlns="http://schemas.microsoft.com/ado/2008/09/edm" xmlns:cg="http://schemas.microsoft.com/ado/2006/04/codegeneration" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" Namespace="PushModel" Alias="Self" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation">
+        <EntityContainer Name="PushModelContainer" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="DeviceTokens" EntityType="PushModel.DeviceToken" />
+          <EntitySet Name="LastDeals" EntityType="PushModel.LastDeal" />
+        </EntityContainer>
+        <EntityType Name="DeviceToken">
+          <Key>
+            <PropertyRef Name="Token" />
+          </Key>
+          <Property Type="String" Name="Token" Nullable="false" MaxLength="64" />
+          <Property Type="String" Name="AppName" Nullable="false" MaxLength="25" />
+          <Property Type="Boolean" Name="Development" Nullable="false" />
+          <Property Type="Int32" Name="BadgeCount" Nullable="false" />
+        </EntityType>
+        <EntityType Name="LastDeal">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Type="Int32" Name="id" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Type="String" Name="headline" Nullable="false" />
+          <Property Type="String" Name="body" Nullable="false" />
+          <Property Type="String" Name="image" Nullable="false" />
+          <Property Type="Boolean" Name="isExpired" Nullable="false" />
+          <Property Type="DateTime" Name="datePosted" Nullable="false" />
+        </EntityType>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+    <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2008/09/mapping/cs">
+  <EntityContainerMapping StorageEntityContainer="PushModelStoreContainer" CdmEntityContainer="PushModelContainer">
+    <EntitySetMapping Name="DeviceTokens">
+      <EntityTypeMapping TypeName="IsTypeOf(PushModel.DeviceToken)">
+        <MappingFragment StoreEntitySet="DeviceTokens">
+          <ScalarProperty Name="BadgeCount" ColumnName="BadgeCount" />
+                <ScalarProperty Name="Token" ColumnName="Token" />
+          <ScalarProperty Name="AppName" ColumnName="AppName" />
+          <ScalarProperty Name="Development" ColumnName="Development" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="LastDeals">
+      <EntityTypeMapping TypeName="IsTypeOf(PushModel.LastDeal)">
+        <MappingFragment StoreEntitySet="LastDeals">
+          <ScalarProperty Name="id" ColumnName="id" />
+          <ScalarProperty Name="headline" ColumnName="headline" />
+          <ScalarProperty Name="body" ColumnName="body" />
+          <ScalarProperty Name="image" ColumnName="image" />
+          <ScalarProperty Name="isExpired" ColumnName="isExpired" />
+          <ScalarProperty Name="datePosted" ColumnName="datePosted" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+  </EntityContainerMapping>
+</Mapping></edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2008/10/edmx">
+    <edmx:Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </edmx:Connection>
+    <edmx:Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="True" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="True" />
+      </DesignerInfoPropertySet>
+    </edmx:Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram Name="PushModel" >
+        <EntityTypeShape EntityType="PushModel.DeviceToken" Width="1.5" PointX="3.75" PointY="0.875" Height="1.4033821614583331" />
+        <EntityTypeShape EntityType="PushModel.LastDeal" Width="1.5" PointX="6.5" PointY="1.75" Height="2.172587890625" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>
