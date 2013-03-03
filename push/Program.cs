@@ -22,6 +22,12 @@ using NLog;
 /// </summary>
 class PasswirdPoller {
 
+    #region Logging
+
+    private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+    #endregion
+
     #region Properties
 
     public string appName { get; set; }
@@ -30,8 +36,6 @@ class PasswirdPoller {
     public string key { get; set; }
     public string apiUrl { get; set; }
     public int pollingMinutes { get; set; }
-
-    private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
     #endregion
 
@@ -57,15 +61,15 @@ class PasswirdPoller {
                 rootDeal = JsonConvert.DeserializeObject<RootDeal>(json);
                 currentDeal = new Deal(rootDeal.deals[0]);
             }
-            catch {
-                Console.WriteLine(@"!Failed to parse deals.");
+            catch (Exception e) {
+                LogError("!Failed to parse deals.", e);
                 return;
             }
         }
 
         //return if no deals were in the collection
         if (rootDeal.deals.Count <= 0) {
-            Console.WriteLine(@"!No deals found.");
+            LogError("!No deals found.", null);
             return;
         }
 
@@ -78,8 +82,8 @@ class PasswirdPoller {
                             select ld).FirstOrDefault();
             }
         }
-        catch {
-            Console.WriteLine(@"!Could not fetch last deal.");
+        catch (Exception e) {
+            LogError("!Could not fetch last deal.", e);
             return;
         }
 
@@ -91,6 +95,7 @@ class PasswirdPoller {
         if (isNewDeal) {
             //found a new deal, send a notification
             Logger.Info(@" >Found new deal.");
+            Logger.Info(@" >" + currentDeal.headline);
             shouldSendNotification = true;
             if (lastDeal.headline == "root") shouldSendNotification = true;
 
@@ -110,8 +115,8 @@ class PasswirdPoller {
                     context.SaveChanges();
                 }
             }
-            catch {
-                Console.WriteLine(@"!Failed to save last deal.");
+            catch (Exception e) {
+                LogError("!Failed to save last deal.", e);
                 return;
             }
         }
@@ -123,17 +128,18 @@ class PasswirdPoller {
     }
 
     /// <summary>
-    /// 
+    /// Initialize a connection the the Apple Push Notification Service (APNS) and deliver a new deal notification
+    /// payload to all registered devices in the database.
     /// </summary>
-    /// <param name="currentHeadline"></param>
+    /// <param name="currentHeadline">The headline to be sent in the push notification payload</param>
     private void SendNotifications(string currentHeadline) {
         //configure and start Apple APNS
         PushNotification push;
         try {
             push = new PushNotification(false, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, this.key), ConfigurationManager.AppSettings["certPassword"]);
         }
-        catch (Exception) {
-            Console.WriteLine(@"!Failed to start service.");
+        catch (Exception e) {
+            LogError("!Failed to start service.", e);
             return;
         }
 
@@ -155,8 +161,8 @@ class PasswirdPoller {
                 context.SaveChanges();
             }
         }
-        catch (Exception) {
-            Console.WriteLine(@"!Failed to fetch device tokens.");
+        catch (Exception e) {
+            LogError("!Failed to fetch device tokens.", e);
             return;
         }
 
@@ -166,19 +172,19 @@ class PasswirdPoller {
         //loop for every registered device token
         foreach (DeviceToken deviceToken in deviceTokens) {
             //add the payload to the list
-            var payload = new NotificationPayload(deviceToken.Token, modifyHeadline(currentHeadline), deviceToken.BadgeCount, "default");
+            var payload = new NotificationPayload(deviceToken.Token, ModifyHeadline(currentHeadline), deviceToken.BadgeCount, "default");
             payloads.Add(payload);
         }
 
         //send the payloads and get a list of rejected payloads for deletion
         Logger.Info(@" >Delivering payloads...");
-        /*var rejectedTokens = push.SendToApple(payloads);
+        var rejectedTokens = push.SendToApple(payloads);
         if (rejectedTokens.Count > 0) {
             //delete all rejected device tokens
             using (PushModelContainer context = new PushModelContainer())
             {
                 foreach (var rejectedToken in rejectedTokens) {
-                    Logger.Error(@"Deleting token: " + rejectedToken);
+                    Logger.Warn(@"Deleting token: " + rejectedToken);
                     DeviceToken dt = new DeviceToken();
                     dt.Token = rejectedToken;
 
@@ -186,7 +192,7 @@ class PasswirdPoller {
                 }
                 context.SaveChanges();
             }
-        }*/
+        }
         Logger.Info(@" >All payloads delivered.");
     }
 
@@ -196,19 +202,32 @@ class PasswirdPoller {
 
     /// <summary>
     /// Replaces matching characters or string patterns from a deal headline that shouldn't be sent 
-    /// in the notification payload. Also truncates the headline to 200 characters
+    /// in the notification payload. Also truncates the headline to 200 characters.
     /// </summary>
     /// <param name="headline">The deal headline to be truncated to have characters replaced</param>
     /// <returns>The deal headline with matching characters removed and truncated if necessary</returns>
-    private static String modifyHeadline(String headline) {
+    private static string ModifyHeadline(string headline) {
         headline = headline.Replace(@"""", @"");
         headline = headline.Replace(@"&amp;", @"&");
         return headline.Truncate(200);
     }
 
+    /// <summary>
+    /// Log an error message to the console and current log file.
+    /// </summary>
+    /// <param name="message">The message to be logged</param>
+    /// <param name="e">The Exception thrown</param>
+    private static void LogError(string message, Exception? e) {
+        Console.WriteLine(message);
+        Logger.Error(message);
+        if (e.HasValue) {
+            Logger.Error(e.Value.Message);
+        }
+    }
+
     #endregion
 
-    #region Startup Function
+    #region Startup
 
     /// <summary>
     /// Main startup function that spawns a new thread and sleeps every minute.
