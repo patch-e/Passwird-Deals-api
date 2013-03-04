@@ -217,11 +217,11 @@ class PasswirdPoller {
     /// </summary>
     /// <param name="message">The message to be logged</param>
     /// <param name="e">The Exception thrown</param>
-    private static void LogError(string message, Exception? e) {
+    private static void LogError(string message, Exception e) {
         Console.WriteLine(message);
         Logger.Error(message);
-        if (e.HasValue) {
-            Logger.Error(e.Value.Message);
+        if (e != null) {
+            Logger.Error(e.Message);
         }
     }
 
