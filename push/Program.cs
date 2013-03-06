@@ -17,6 +17,7 @@ using NLog;
 /// Console application that initializes a PasswirdPoller object which spawns a new thread every minute
 /// to consume the Passwird Deals API. This thread compares the newest deal from the API call with the 
 /// previous newest deal that was persisted to a database during a previous call.
+/// 
 /// If the comparison doesn't match, the thread gets a list of registered device tokens and sends a
 /// push notification payload via the Apple APNS.
 /// </summary>
@@ -47,7 +48,7 @@ class PasswirdPoller {
     /// to all registered devices for the new deal.
     /// </summary>
     private void PollDeals() {
-        var shouldSendNotification = false;
+        bool isNewDeal = false, shouldSendNotification = false;
         LastDeal lastDeal;
         Deal currentDeal;
         RootDeal rootDeal;
@@ -89,15 +90,16 @@ class PasswirdPoller {
 
         //compare the last deal with the current deal
         //considering the headline + datePosted to be unique key for deals
-        bool isNewDeal = (currentDeal.headline == lastDeal.headline &&
-                          currentDeal.datePosted == lastDeal.datePosted) ||
-                          currentDeal.headline == @"Currently experiencing technical difficulties.";
+        if (currentDeal.headline == @"Currently experiencing technical difficulties.") {
+            isNewDeal = false;
+        } else if (currentDeal.headline != lastDeal.headline && currentDeal.datePosted != lastDeal.datePosted) {
+            isNewDeal = true;
+        }
+
         if (isNewDeal) {
             //found a new deal, send a notification
             Logger.Info(@" >Found new deal.");
             Logger.Info(@" >" + currentDeal.headline);
-            shouldSendNotification = true;
-            if (lastDeal.headline == "root") shouldSendNotification = true;
 
             try {
                 //save the current deal as the last deal to the database
@@ -114,6 +116,9 @@ class PasswirdPoller {
                     context.LastDeals.AddObject(lastDeal);
                     context.SaveChanges();
                 }
+
+                shouldSendNotification = true;
+                if (lastDeal.headline == "root") shouldSendNotification = true;
             }
             catch (Exception e) {
                 LogError("!Failed to save last deal.", e);
@@ -194,6 +199,7 @@ class PasswirdPoller {
             }
         }
         Logger.Info(@" >All payloads delivered.");
+        Logger.Info(@"");
     }
 
     #endregion
