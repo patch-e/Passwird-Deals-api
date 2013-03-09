@@ -89,10 +89,11 @@ class PasswirdPoller {
         }
 
         //compare the last deal with the current deal
-        //considering the headline + datePosted to be unique key for deals
+        //considering the headline to be unique key for deals, not ideal obviously
+        //but I am limited in what I can get back from scraping the passwird site
         if (currentDeal.headline == @"Currently experiencing technical difficulties.") {
             isNewDeal = false;
-        } else if (currentDeal.headline != lastDeal.headline && currentDeal.datePosted != lastDeal.datePosted) {
+        } else if (currentDeal.headline.Truncate(25) != lastDeal.headline.Truncate(25)) {
             isNewDeal = true;
         }
 
