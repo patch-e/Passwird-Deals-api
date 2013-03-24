@@ -161,7 +161,11 @@ class PasswirdPoller {
                 deviceTokens = q.ToList<DeviceToken>();
 
                 foreach (DeviceToken deviceToken in deviceTokens) {
-                    deviceToken.BadgeCount++;
+                    if (deviceToken.BadgeCount > 50) {
+                        deviceToken.BadgeCount = 0;
+                    } else {
+                        deviceToken.BadgeCount++;
+                    }
                 }
 
                 context.SaveChanges();
