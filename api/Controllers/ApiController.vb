@@ -238,11 +238,14 @@ Public Class ApiController
                         deviceToken.AppName = app
                         deviceToken.Token = token
                         deviceToken.Development = dev
-
-                        context.DeviceTokens.AddObject(deviceToken)
-
-                        rows = context.SaveChanges()
+                        deviceToken.BadgeCount = 0
+                    Else
+                        deviceToken.Development = dev
+                        deviceToken.BadgeCount = 0
                     End If
+                    context.DeviceTokens.AddObject(deviceToken)
+
+                    rows = context.SaveChanges()
                 Catch ex As Exception
                     rows = -1
                 End Try
