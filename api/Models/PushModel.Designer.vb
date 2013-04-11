@@ -16,7 +16,7 @@ Imports System.ComponentModel
 Imports System.Xml.Serialization
 Imports System.Runtime.Serialization
 
-<Assembly: EdmSchemaAttribute("5788b676-45e6-4df1-8267-d769d59db830")>
+<Assembly: EdmSchemaAttribute("ca02022a-ed40-4d0b-8be6-01b56f39d77e")>
 
 #Region "Contexts"
 
@@ -134,12 +134,14 @@ Public Partial Class DeviceToken
     ''' <param name="appName">Initial value of the AppName property.</param>
     ''' <param name="development">Initial value of the Development property.</param>
     ''' <param name="badgeCount">Initial value of the BadgeCount property.</param>
-    Public Shared Function CreateDeviceToken(token As Global.System.String, appName As Global.System.String, development As Global.System.Boolean, badgeCount As Global.System.Int32) As DeviceToken
+    ''' <param name="active">Initial value of the Active property.</param>
+    Public Shared Function CreateDeviceToken(token As Global.System.String, appName As Global.System.String, development As Global.System.Boolean, badgeCount As Global.System.Int32, active As Global.System.Boolean) As DeviceToken
         Dim deviceToken as DeviceToken = New DeviceToken
         deviceToken.Token = token
         deviceToken.AppName = appName
         deviceToken.Development = development
         deviceToken.BadgeCount = badgeCount
+        deviceToken.Active = active
         Return deviceToken
     End Function
 
@@ -246,6 +248,31 @@ Public Partial Class DeviceToken
     End Sub
 
     Private Partial Sub OnBadgeCountChanged()
+    End Sub
+
+    ''' <summary>
+    ''' No Metadata Documentation available.
+    ''' </summary>
+    <EdmScalarPropertyAttribute(EntityKeyProperty:=false, IsNullable:=false)>
+    <DataMemberAttribute()>
+    Public Property Active() As Global.System.Boolean
+        Get
+            Return _Active
+        End Get
+        Set
+            OnActiveChanging(value)
+            ReportPropertyChanging("Active")
+            _Active = StructuralObject.SetValidValue(value)
+            ReportPropertyChanged("Active")
+            OnActiveChanged()
+        End Set
+    End Property
+
+    Private _Active As Global.System.Boolean
+    Private Partial Sub OnActiveChanging(value As Global.System.Boolean)
+    End Sub
+
+    Private Partial Sub OnActiveChanged()
     End Sub
 
     #End Region

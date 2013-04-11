@@ -17,6 +17,7 @@
           <Property Name="AppName" Type="nvarchar" Nullable="false" MaxLength="25" />
           <Property Name="Development" Type="bit" Nullable="false" />
           <Property Name="BadgeCount" Type="int" Nullable="false" />
+          <Property Name="Active" Type="bit" Nullable="false" />
         </EntityType>
         <EntityType Name="LastDeals">
           <Key>
@@ -45,6 +46,7 @@
           <Property Type="String" Name="AppName" Nullable="false" MaxLength="25" />
           <Property Type="Boolean" Name="Development" Nullable="false" />
           <Property Type="Int32" Name="BadgeCount" Nullable="false" />
+          <Property Type="Boolean" Name="Active" Nullable="false" />
         </EntityType>
         <EntityType Name="LastDeal">
           <Key>
@@ -66,7 +68,8 @@
     <EntitySetMapping Name="DeviceTokens">
       <EntityTypeMapping TypeName="IsTypeOf(PushModel.DeviceToken)">
         <MappingFragment StoreEntitySet="DeviceTokens">
-          <ScalarProperty Name="BadgeCount" ColumnName="BadgeCount" />
+          <ScalarProperty Name="Active" ColumnName="Active" />
+                <ScalarProperty Name="BadgeCount" ColumnName="BadgeCount" />
                 <ScalarProperty Name="Token" ColumnName="Token" />
           <ScalarProperty Name="AppName" ColumnName="AppName" />
           <ScalarProperty Name="Development" ColumnName="Development" />
