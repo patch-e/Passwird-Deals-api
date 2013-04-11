@@ -235,14 +235,14 @@ Public Class ApiController
 
                     If deviceToken Is Nothing Then
                         deviceToken = New DeviceToken
-                        deviceToken.AppName = app
                         deviceToken.Token = token
-                        deviceToken.Development = dev
-                        deviceToken.BadgeCount = 0
-                    Else
+                        deviceToken.AppName = app
                         deviceToken.Development = dev
                         deviceToken.BadgeCount = 0
                     End If
+
+                    deviceToken.Active = True
+
                     context.DeviceTokens.AddObject(deviceToken)
 
                     rows = context.SaveChanges()
@@ -268,7 +268,7 @@ Public Class ApiController
                                        Where dt.Token = token).FirstOrDefault()
 
                     If deviceToken IsNot Nothing Then
-                        context.DeviceTokens.DeleteObject(deviceToken)
+                        deviceToken.Active = False
 
                         rows = context.SaveChanges()
                     End If

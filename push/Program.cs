@@ -157,6 +157,7 @@ class PasswirdPoller {
                 var q = (from dt in context.DeviceTokens
                          where dt.Development.Equals(this.isDevelopment)
                          where dt.AppName.Equals(this.appName)
+                         where dt.Active.Equals(true)
                          select dt);
                 deviceTokens = q.ToList<DeviceToken>();
 
@@ -190,15 +191,16 @@ class PasswirdPoller {
         Logger.Info(@" >Delivering payloads...");
         var rejectedTokens = push.SendToApple(payloads);
         if (rejectedTokens.Count > 0) {
-            //delete all rejected device tokens
+            //deactivate all rejected device tokens
             using (PushModelContainer context = new PushModelContainer())
             {
                 foreach (var rejectedToken in rejectedTokens) {
                     Logger.Warn(@"Deleting token: " + rejectedToken);
                     DeviceToken dt = new DeviceToken();
                     dt.Token = rejectedToken;
+                    dt.Active = false;
 
-                    context.DeviceTokens.DeleteObject(dt);
+                    context.DeviceTokens.AddObject(dt);
                 }
                 context.SaveChanges();
             }
