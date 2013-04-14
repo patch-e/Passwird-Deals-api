@@ -239,11 +239,12 @@ Public Class ApiController
                         deviceToken.AppName = app
                         deviceToken.Development = dev
                         deviceToken.BadgeCount = 0
+                        deviceToken.Active = True
+
+                        context.DeviceTokens.AddObject(deviceToken)
+                    Else
+                        deviceToken.Active = True
                     End If
-
-                    deviceToken.Active = True
-
-                    context.DeviceTokens.AddObject(deviceToken)
 
                     rows = context.SaveChanges()
                 Catch ex As Exception

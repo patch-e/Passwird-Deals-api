@@ -195,12 +195,14 @@ class PasswirdPoller {
             using (PushModelContainer context = new PushModelContainer())
             {
                 foreach (var rejectedToken in rejectedTokens) {
-                    Logger.Warn(@"Deleting token: " + rejectedToken);
-                    DeviceToken dt = new DeviceToken();
-                    dt.Token = rejectedToken;
-                    dt.Active = false;
+                    Logger.Warn(@"Deactivating token: " + rejectedToken);
 
-                    context.DeviceTokens.AddObject(dt);
+                    DeviceToken deviceToken = (from dt in context.DeviceTokens
+                                               where dt.Token.Equals(rejectedToken)
+                                               select dt).FirstOrDefault();
+                    if (deviceToken != null) {
+                        deviceToken.Active = false;
+                    }
                 }
                 context.SaveChanges();
             }
