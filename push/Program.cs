@@ -129,7 +129,7 @@ class PasswirdPoller {
 
         //if a new deal was found, start sending notifications
         if (shouldSendNotification) {
-            SendNotifications(currentDeal.headline);
+            SendNotifications(lastDeal.id, currentDeal.headline);
         }
     }
 
@@ -138,7 +138,7 @@ class PasswirdPoller {
     /// payload to all registered devices in the database.
     /// </summary>
     /// <param name="currentHeadline">The headline to be sent in the push notification payload</param>
-    private void SendNotifications(string currentHeadline) {
+    private void SendNotifications(int id, string headline) {
         //configure and start Apple APNS
         PushNotification push;
         try {
@@ -183,7 +183,8 @@ class PasswirdPoller {
         //loop for every registered device token
         foreach (DeviceToken deviceToken in deviceTokens) {
             //add the payload to the list
-            var payload = new NotificationPayload(deviceToken.Token, ModifyHeadline(currentHeadline), deviceToken.BadgeCount, "default");
+            var payload = new NotificationPayload(deviceToken.Token, ModifyHeadline(headline), deviceToken.BadgeCount, "default");
+            payload.AddCustom("id", id);
             payloads.Add(payload);
         }
 
@@ -254,7 +255,7 @@ class PasswirdPoller {
         pp.appName = ConfigurationManager.AppSettings[@"appName"];
 
         //setup key values
-        pp.isDevelopment = Convert.ToBoolean(ConfigurationManager.AppSettings[@"isDevelopament"]);
+        pp.isDevelopment = Convert.ToBoolean(ConfigurationManager.AppSettings[@"isDevelopment"]);
         pp.devKey = ConfigurationManager.AppSettings[@"devKeyFile"];
         pp.key = ConfigurationManager.AppSettings[@"keyFile"];
         if (pp.isDevelopment) { pp.key = pp.devKey; }
