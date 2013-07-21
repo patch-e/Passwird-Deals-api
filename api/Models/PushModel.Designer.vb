@@ -16,7 +16,7 @@ Imports System.ComponentModel
 Imports System.Xml.Serialization
 Imports System.Runtime.Serialization
 
-<Assembly: EdmSchemaAttribute("ca02022a-ed40-4d0b-8be6-01b56f39d77e")>
+<Assembly: EdmSchemaAttribute("45020165-6c75-4aad-a936-07ec7c80e0ab")>
 
 #Region "Contexts"
 
@@ -273,6 +273,31 @@ Public Partial Class DeviceToken
     End Sub
 
     Private Partial Sub OnActiveChanged()
+    End Sub
+
+    ''' <summary>
+    ''' No Metadata Documentation available.
+    ''' </summary>
+    <EdmScalarPropertyAttribute(EntityKeyProperty:=false, IsNullable:=true)>
+    <DataMemberAttribute()>
+    Public Property LastActivity() As Nullable(Of Global.System.DateTime)
+        Get
+            Return _LastActivity
+        End Get
+        Set
+            OnLastActivityChanging(value)
+            ReportPropertyChanging("LastActivity")
+            _LastActivity = StructuralObject.SetValidValue(value)
+            ReportPropertyChanged("LastActivity")
+            OnLastActivityChanged()
+        End Set
+    End Property
+
+    Private _LastActivity As Nullable(Of Global.System.DateTime)
+    Private Partial Sub OnLastActivityChanging(value As Nullable(Of Global.System.DateTime))
+    End Sub
+
+    Private Partial Sub OnLastActivityChanged()
     End Sub
 
     #End Region

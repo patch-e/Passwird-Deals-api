@@ -11,6 +11,36 @@ Public Class ApiController
 #Region " Passwird Version 1 "
 
     <HttpGet()>
+    <OutputCache(Duration:=3600, VaryByParam:="id")>
+    Function PasswirdDeal(id As Integer) As ActionResult
+        Dim deals As New List(Of Deals.Version1.Deal)
+        Dim deal = New Deals.Version1.Deal
+
+        Using context As New PushModelContainer
+            Try
+                Dim lastDeal = (From d In context.LastDeals
+                                Where d.id = id).FirstOrDefault()
+
+                If lastDeal IsNot Nothing Then
+                    deal.body = lastDeal.body
+                    deal.datePosted = lastDeal.datePosted
+                    deal.headline = lastDeal.headline
+                    deal.image = lastDeal.image
+                    deal.isExpired = lastDeal.isExpired
+
+                    deals.Add(deal)
+
+                    Return Json(New With {.deals = deals}, JsonRequestBehavior.AllowGet)
+                End If
+
+                Return ServerError()
+            Catch ex As Exception
+                Return ServerError()
+            End Try
+        End Using
+    End Function
+
+    <HttpGet()>
     <OutputCache(Duration:=60, VaryByParam:="e")>
     Function Passwird(type As String, e As String) As ActionResult
         Dim webGet = New HtmlWeb()
@@ -119,6 +149,36 @@ Public Class ApiController
 #End Region
 
 #Region " Passwird Version 2 "
+
+    <HttpGet()>
+    <OutputCache(Duration:=3600, VaryByParam:="id")>
+    Function PasswirdDealV2(id As Integer) As ActionResult
+        Dim deals As New List(Of Deals.Version2.Deal)
+        Dim deal = New Deals.Version2.Deal
+
+        Using context As New PushModelContainer
+            Try
+                Dim lastDeal = (From d In context.LastDeals
+                                Where d.id = id).FirstOrDefault()
+
+                If lastDeal IsNot Nothing Then
+                    deal.title = lastDeal.headline
+                    deal.date = lastDeal.datePosted
+                    deal.expired = lastDeal.isExpired
+                    deal.body = lastDeal.body
+                    deal.image = lastDeal.image
+
+                    deals.Add(deal)
+
+                    Return Json(New With {.deals = deals}, JsonRequestBehavior.AllowGet)
+                End If
+
+                Return ServerErrorV2()
+            Catch ex As Exception
+                Return ServerErrorV2()
+            End Try
+        End Using
+    End Function
 
     <HttpGet()>
     <OutputCache(Duration:=60, VaryByParam:="e")>
@@ -240,6 +300,7 @@ Public Class ApiController
                         deviceToken.Development = dev
                         deviceToken.BadgeCount = 0
                         deviceToken.Active = True
+                        deviceToken.LastActivity = Date.Now()
 
                         context.DeviceTokens.AddObject(deviceToken)
                     Else
