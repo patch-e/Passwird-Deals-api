@@ -48,6 +48,9 @@ class PasswirdPoller {
     /// to all registered devices for the new deal.
     /// </summary>
     private void PollDeals() {
+        //SendNotifications(112, "Test");
+        //return;
+
         bool isNewDeal = false, shouldSendNotification = false;
         LastDeal lastDeal;
         Deal currentDeal;
@@ -155,6 +158,7 @@ class PasswirdPoller {
             using (PushModelContainer context = new PushModelContainer())
             {
                 var q = (from dt in context.DeviceTokens
+                         //where dt.Development.Equals(true)
                          where dt.Development.Equals(this.isDevelopment)
                          where dt.AppName.Equals(this.appName)
                          where dt.Active.Equals(true)
