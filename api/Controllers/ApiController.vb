@@ -11,8 +11,8 @@ Public Class ApiController
 #Region " Passwird Version 1 "
 
     <HttpGet()>
-    <OutputCache(Duration:=3600, VaryByParam:="id")>
-    Function PasswirdDeal(id As Integer) As ActionResult
+    <OutputCache(Duration:=3600, VaryByParam:="id;type;callback")>
+    Function PasswirdDeal(id As Integer, type As String) As ActionResult
         Dim deals As New List(Of Deals.Version1.Deal)
         Dim deal = New Deals.Version1.Deal
 
@@ -30,7 +30,14 @@ Public Class ApiController
 
                     deals.Add(deal)
 
-                    Return Json(New With {.deals = deals}, JsonRequestBehavior.AllowGet)
+                    Select Case type
+                        Case "json"
+                            Return Json(deals, JsonRequestBehavior.AllowGet)
+                        Case "jsonp"
+                            Return Jsonp(deals)
+                        Case Else
+                            Return Json(New With {.deals = deals}, JsonRequestBehavior.AllowGet)
+                    End Select
                 End If
 
                 Return ServerError()
@@ -41,8 +48,8 @@ Public Class ApiController
     End Function
 
     <HttpGet()>
-    <OutputCache(Duration:=60, VaryByParam:="e")>
-    Function Passwird(type As String, e As String) As ActionResult
+    <OutputCache(Duration:=60, VaryByParam:="e;type;callback")>
+    Function Passwird(e As String, type As String) As ActionResult
         Dim webGet = New HtmlWeb()
 
         webGet.UserAgent = AppSettings("passwirdUserAgent")
@@ -57,8 +64,8 @@ Public Class ApiController
     End Function
 
     <HttpGet()>
-    <OutputCache(Duration:=60, VaryByParam:="q")>
-    Function PasswirdSearch(type As String, q As String, e As String) As ActionResult
+    <OutputCache(Duration:=60, VaryByParam:="q;e;type;callback")>
+    Function PasswirdSearch(q As String, e As String, type As String) As ActionResult
         Dim webGet = New HtmlWeb()
 
         webGet.UserAgent = AppSettings("passwirdUserAgent")
