@@ -12,6 +12,18 @@
         Public Property isExpired As Boolean
         Public Property datePosted As DateTime
 
+        Public Sub New()
+            'default constructor
+        End Sub
+
+        Public Sub New(deal As Deal)
+            Me.body = deal.body
+            Me.datePosted = deal.datePosted
+            Me.headline = deal.headline
+            Me.image = deal.image
+            Me.isExpired = deal.isExpired
+        End Sub
+
     End Class
 
     ''' <summary>
