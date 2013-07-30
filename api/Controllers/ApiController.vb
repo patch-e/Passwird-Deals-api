@@ -60,7 +60,7 @@ Public Class ApiController
 
         Dim document = webGet.Load(AppSettings("passwirdUrl"))
 
-        Return PasswirdFetch(type, document, e)
+        Return PasswirdFetch(document, e, type)
     End Function
 
     <HttpGet()>
@@ -83,10 +83,10 @@ Public Class ApiController
 
         document = webGet.SubmitFormValues(postData, AppSettings("passwirdSearchUrl"))
 
-        Return PasswirdFetch(type, document, e)
+        Return PasswirdFetch(document, e, type)
     End Function
 
-    Private Function PasswirdFetch(type As String, document As HtmlAgilityPack.HtmlDocument, showDeals As String) As ActionResult
+    Private Function PasswirdFetch(document As HtmlAgilityPack.HtmlDocument, showExpiredDeals As String, type As String) As ActionResult
         If document.DocumentNode IsNot Nothing Then
             Dim divContent = document.DocumentNode.SelectNodes("//div[@id='content']")
 
@@ -117,7 +117,7 @@ Public Class ApiController
                             deal.body = n.NextSibling.NextSibling.Element("span").InnerHtml
                             deal.image = AppSettings("passwirdUrl") + n.NextSibling.NextSibling.Element("img").Attributes("src").Value
                         End If
-                        If Not (showDeals = "0" And deal.isExpired) Then
+                        If Not (showExpiredDeals = "0" And deal.isExpired) Then
                             deals.Add(deal)
                         End If
                     End If
@@ -158,52 +158,33 @@ Public Class ApiController
 #Region " Passwird Version 2 "
 
     <HttpGet()>
-    <OutputCache(Duration:=3600, VaryByParam:="id")>
-    Function PasswirdDealV2(id As Integer) As ActionResult
-        Dim deals As New List(Of Deals.Version2.Deal)
-        Dim deal = New Deals.Version2.Deal
+    <OutputCache(Duration:=3600, VaryByParam:="id;type;callback")>
+    Function PasswirdDealV2(id As String, type As String) As ActionResult
+        Dim deals As New List(Of Deals.Version1.Deal)
+        Dim deal = New Deals.Version1.Deal
 
-        Using context As New PushModelContainer
-            Try
-                Dim lastDeal = (From d In context.LastDeals
-                                Where d.id = id).FirstOrDefault()
+        Dim jsonString = New WebClient().DownloadString(String.Format(AppSettings("newPasswirdDealUrl"), id))
 
-                If lastDeal IsNot Nothing Then
-                    deal.title = lastDeal.headline
-                    deal.date = lastDeal.datePosted
-                    deal.expired = lastDeal.isExpired
-                    deal.body = lastDeal.body
-                    deal.image = lastDeal.image
-
-                    deals.Add(deal)
-
-                    Return Json(New With {.deals = deals}, JsonRequestBehavior.AllowGet)
-                End If
-
-                Return ServerErrorV2()
-            Catch ex As Exception
-                Return ServerErrorV2()
-            End Try
-        End Using
+        Return PasswirdFetchSingleV2(jsonString, type)
     End Function
 
     <HttpGet()>
-    <OutputCache(Duration:=60, VaryByParam:="e")>
-    Function PasswirdV2(type As String, e As String) As ActionResult
+    <OutputCache(Duration:=60, VaryByParam:="e;type;callback")>
+    Function PasswirdV2(e As String, type As String) As ActionResult
         Dim jsonString = New WebClient().DownloadString(AppSettings("newPasswirdUrl"))
 
-        Return PasswirdFetchV2(type, jsonString, e)
+        Return PasswirdFetchV2(jsonString, e, type)
     End Function
 
     <HttpGet()>
     <OutputCache(Duration:=60, VaryByParam:="q")>
-    Function PasswirdSearchV2(type As String, q As String, e As String) As ActionResult
+    Function PasswirdSearchV2(q As String, e As String, type As String) As ActionResult
         Dim jsonString = New WebClient().DownloadString(String.Format(AppSettings("newPasswirdSearchUrl"), q))
 
-        Return PasswirdFetchV2(type, jsonString, e)
+        Return PasswirdFetchV2(jsonString, e, type)
     End Function
 
-    Private Function PasswirdFetchV2(type As String, jsonString As String, showDeals As String) As ActionResult
+    Private Function PasswirdFetchV2(jsonString As String, showExpiredDeals As String, type As String) As ActionResult
         Dim newPasswirdDeals As New Deals.Version2.RootDeal
         Try
             newPasswirdDeals = JsonConvert.DeserializeObject(Of Deals.Version2.RootDeal)(jsonString)
@@ -212,25 +193,27 @@ Public Class ApiController
             Throw New Exception
         End Try
 
-        Dim deals As New List(Of Deals.Version2.Deal)
-        If newPasswirdDeals.numDeals > 0 Then
-            For Each d In newPasswirdDeals.deals
-                Dim deal = New Deals.Version2.Deal
+        Dim deals As New List(Of Deals.Version1.Deal)
 
-                deal.title = d.title
-                deal.body = d.body
-                deal.date = d.date
-                deal.image = d.image
-                deal.expired = IIf(d.expired = "yes", True, False)
-                deal.link = d.link
-                deal.timestamp = d.timestamp
+        'translate V2 Deals to V1 Deals
+        For Each d In newPasswirdDeals.data
+            Dim dDate As Date = d.Key
+            Dim dDeals As List(Of Deals.Version2.Deal) = d.Value
 
-                If Not (showDeals = "0" And deal.expired) Then
-                    deals.Add(deal)
-                End If
+            For Each dDeal In dDeals
+                If (showExpiredDeals = "0" And dDeal.expired) Then Continue For
 
+                Dim deal As New Deals.Version1.Deal
+
+                deal.body = dDeal.text
+                deal.datePosted = dDate
+                deal.headline = dDeal.title
+                deal.image = dDeal.images.Item(0)
+                deal.isExpired = dDeal.expired
+
+                deals.Add(deal)
             Next
-        End If
+        Next
 
         Select Case type
             Case "json"
@@ -240,22 +223,38 @@ Public Class ApiController
             Case Else
                 Return Json(New With {.deals = deals}, JsonRequestBehavior.AllowGet)
         End Select
+
     End Function
 
-    <HttpGet()>
-    Function ServerErrorV2() As ActionResult
-        Dim deals As New List(Of Deals.Version2.Deal)
-        Dim deal = New Deals.Version2.Deal
+    Private Function PasswirdFetchSingleV2(jsonString As String, type As String) As ActionResult
+        Dim newPasswirdDeals As New Deals.Version2.Deal
+        Try
+            newPasswirdDeals = JsonConvert.DeserializeObject(Of Deals.Version2.Deal)(jsonString)
+        Catch ex As Exception
+            'caught bad input or passwird outage
+            Throw New Exception
+        End Try
 
-        deal.title = api.My.Resources.errorHeadline
-        deal.date = Date.Now
-        deal.expired = False
-        deal.body = api.My.Resources.errorBody
-        deal.image = AppSettings("errorImageUrl")
+        Dim deals As New List(Of Deals.Version1.Deal)
+        Dim deal As New Deals.Version1.Deal
+
+        deal.body = newPasswirdDeals.text
+        deal.datePosted = newPasswirdDeals.dealDate
+        deal.headline = newPasswirdDeals.title
+        deal.image = newPasswirdDeals.images.Item(0)
+        deal.isExpired = newPasswirdDeals.expired
 
         deals.Add(deal)
 
-        Return Json(New With {.deals = deals}, JsonRequestBehavior.AllowGet)
+        Select Case type
+            Case "json"
+                Return Json(deals, JsonRequestBehavior.AllowGet)
+            Case "jsonp"
+                Return Jsonp(deals)
+            Case Else
+                Return Json(New With {.deals = deals}, JsonRequestBehavior.AllowGet)
+        End Select
+
     End Function
 
 #End Region
