@@ -30,19 +30,12 @@ Public Class ApiController
 
                     deals.Add(deal)
 
-                    Select Case type
-                        Case "json"
-                            Return Json(deals, JsonRequestBehavior.AllowGet)
-                        Case "jsonp"
-                            Return Jsonp(deals)
-                        Case Else
-                            Return Json(New With {.deals = deals}, JsonRequestBehavior.AllowGet)
-                    End Select
+                    Return SerializeDeals(type, deals)
                 End If
 
                 Return ServerError()
             Catch ex As Exception
-                Return ServerError()
+                Throw New Exception
             End Try
         End Using
     End Function
@@ -81,7 +74,11 @@ Public Class ApiController
         postData.Add("match", AppSettings("passwirdSearchMatch"))
         postData.Add("resultnumber", AppSettings("passwirdSearchResultNumber"))
 
-        document = webGet.SubmitFormValues(postData, AppSettings("passwirdSearchUrl"))
+        Try
+            document = webGet.SubmitFormValues(postData, AppSettings("passwirdSearchUrl"))
+        Catch ex As Exception
+            Throw New Exception
+        End Try
 
         Return PasswirdFetch(document, e, type)
     End Function
@@ -123,34 +120,11 @@ Public Class ApiController
                     End If
                 Next
 
-                Select Case type
-                    Case "json"
-                        Return Json(deals, JsonRequestBehavior.AllowGet)
-                    Case "jsonp"
-                        Return Jsonp(deals)
-                    Case Else
-                        Return Json(New With {.deals = deals}, JsonRequestBehavior.AllowGet)
-                End Select
+                Return SerializeDeals(type, deals)
             End If
         End If
 
         Return Nothing
-    End Function
-
-    <HttpGet()>
-    Function ServerError() As ActionResult
-        Dim deals As New List(Of Deals.Version1.Deal)
-        Dim deal = New Deals.Version1.Deal
-
-        deal.headline = api.My.Resources.errorHeadline
-        deal.datePosted = Date.Now
-        deal.isExpired = False
-        deal.body = api.My.Resources.errorBody
-        deal.image = AppSettings("errorImageUrl")
-
-        deals.Add(deal)
-
-        Return Json(New With {.deals = deals}, JsonRequestBehavior.AllowGet)
     End Function
 
 #End Region
@@ -165,23 +139,50 @@ Public Class ApiController
 
         Dim jsonString = New WebClient().DownloadString(String.Format(AppSettings("newPasswirdDealUrl"), id))
 
-        Return PasswirdFetchSingleV2(jsonString, type)
+        Return PasswirdDealFetchV2(jsonString, type)
     End Function
 
     <HttpGet()>
-    <OutputCache(Duration:=60, VaryByParam:="e;type;callback")>
-    Function PasswirdV2(e As String, type As String) As ActionResult
-        Dim jsonString = New WebClient().DownloadString(AppSettings("newPasswirdUrl"))
+    <OutputCache(Duration:=60, VaryByParam:="show;e;type;callback")>
+    Function PasswirdV2(show As String, e As String, type As String) As ActionResult
+        Dim showAsInt As Integer
+        If String.IsNullOrEmpty(show) OrElse Not Integer.TryParse(show, showAsInt) OrElse show = 0 Then
+            show = 50
+        End If
+
+        Dim jsonString = New WebClient().DownloadString(String.Format(AppSettings("newPasswirdUrl"), show))
 
         Return PasswirdFetchV2(jsonString, e, type)
     End Function
 
     <HttpGet()>
-    <OutputCache(Duration:=60, VaryByParam:="q")>
+    <OutputCache(Duration:=60, VaryByParam:="q;e;type;callback")>
     Function PasswirdSearchV2(q As String, e As String, type As String) As ActionResult
         Dim jsonString = New WebClient().DownloadString(String.Format(AppSettings("newPasswirdSearchUrl"), q))
 
-        Return PasswirdFetchV2(jsonString, e, type)
+        Return PasswirdSearchFetchV2(jsonString, e, type)
+    End Function
+
+    Private Function PasswirdDealFetchV2(jsonString As String, type As String) As ActionResult
+        Dim newPasswirdDeals As New Deals.Version2.Deal
+        Try
+            newPasswirdDeals = JsonConvert.DeserializeObject(Of Deals.Version2.Deal)(jsonString)
+        Catch ex As Exception
+            Throw New Exception
+        End Try
+
+        Dim deals As New List(Of Deals.Version1.Deal)
+        Dim deal As New Deals.Version1.Deal
+
+        deal.body = newPasswirdDeals.text
+        deal.datePosted = newPasswirdDeals.dealDate
+        deal.headline = newPasswirdDeals.title
+        deal.image = newPasswirdDeals.images.Item(0)
+        deal.isExpired = newPasswirdDeals.expired
+
+        deals.Add(deal)
+
+        Return SerializeDeals(type, deals)
     End Function
 
     Private Function PasswirdFetchV2(jsonString As String, showExpiredDeals As String, type As String) As ActionResult
@@ -189,7 +190,6 @@ Public Class ApiController
         Try
             newPasswirdDeals = JsonConvert.DeserializeObject(Of Deals.Version2.RootDeal)(jsonString)
         Catch ex As Exception
-            'caught bad input or passwird outage
             Throw New Exception
         End Try
 
@@ -215,37 +215,58 @@ Public Class ApiController
             Next
         Next
 
-        Select Case type
-            Case "json"
-                Return Json(deals, JsonRequestBehavior.AllowGet)
-            Case "jsonp"
-                Return Jsonp(deals)
-            Case Else
-                Return Json(New With {.deals = deals}, JsonRequestBehavior.AllowGet)
-        End Select
-
+        Return SerializeDeals(type, deals)
     End Function
 
-    Private Function PasswirdFetchSingleV2(jsonString As String, type As String) As ActionResult
-        Dim newPasswirdDeals As New Deals.Version2.Deal
+    Private Function PasswirdSearchFetchV2(jsonString As String, showExpiredDeals As String, type As String) As ActionResult
+        Dim newPasswirdDeals As New List(Of Deals.Version2.SearchResult)
         Try
-            newPasswirdDeals = JsonConvert.DeserializeObject(Of Deals.Version2.Deal)(jsonString)
+            newPasswirdDeals = JsonConvert.DeserializeObject(Of List(Of Deals.Version2.SearchResult))(jsonString)
         Catch ex As Exception
-            'caught bad input or passwird outage
             Throw New Exception
         End Try
 
         Dim deals As New List(Of Deals.Version1.Deal)
-        Dim deal As New Deals.Version1.Deal
 
-        deal.body = newPasswirdDeals.text
-        deal.datePosted = newPasswirdDeals.dealDate
-        deal.headline = newPasswirdDeals.title
-        deal.image = newPasswirdDeals.images.Item(0)
-        deal.isExpired = newPasswirdDeals.expired
+        'translate V2 Deals to V1 Deals
+        For Each s In newPasswirdDeals
+            If (showExpiredDeals = "0" And s.obj.expired) Then Continue For
+
+            Dim deal As New Deals.Version1.Deal
+
+            deal.body = s.obj.text
+            deal.datePosted = s.obj.dealDate
+            deal.headline = s.obj.title
+            deal.image = s.obj.images.Item(0)
+            deal.isExpired = s.obj.expired
+
+            deals.Add(deal)
+        Next
+
+        Return SerializeDeals(type, deals)
+    End Function
+
+#End Region
+
+#Region " Common "
+
+    <HttpGet()>
+    Function ServerError() As ActionResult
+        Dim deals As New List(Of Deals.Version1.Deal)
+        Dim deal = New Deals.Version1.Deal
+
+        deal.headline = api.My.Resources.errorHeadline
+        deal.datePosted = Date.Now
+        deal.isExpired = False
+        deal.body = api.My.Resources.errorBody
+        deal.image = AppSettings("errorImageUrl")
 
         deals.Add(deal)
 
+        Return Json(New With {.deals = deals}, JsonRequestBehavior.AllowGet)
+    End Function
+
+    Private Function SerializeDeals(type As String, deals As List(Of Deals.Version1.Deal))
         Select Case type
             Case "json"
                 Return Json(deals, JsonRequestBehavior.AllowGet)
@@ -254,7 +275,6 @@ Public Class ApiController
             Case Else
                 Return Json(New With {.deals = deals}, JsonRequestBehavior.AllowGet)
         End Select
-
     End Function
 
 #End Region
