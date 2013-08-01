@@ -1,7 +1,7 @@
 ﻿Namespace Deals.Version1
 
     ''' <summary>
-    ''' Represents version 1 deals.
+    ''' Represents deals.
     ''' </summary>
     ''' <remarks></remarks>
     Public Class Deal
@@ -12,10 +12,11 @@
         Public Property isExpired As Boolean
         Public Property datePosted As DateTime
 
+        'default constructor
         Public Sub New()
-            'default constructor
         End Sub
 
+        'copy object constructor
         Public Sub New(deal As Deal)
             Me.body = deal.body
             Me.datePosted = deal.datePosted
