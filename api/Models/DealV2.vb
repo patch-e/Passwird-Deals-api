@@ -36,4 +36,15 @@
 
     End Class
 
+    ''' <summary>
+    ''' Represents search results.
+    ''' </summary>
+    ''' <remarks></remarks>
+    Public Class SearchResult
+
+        Public Property score As Double
+        Public Property obj As Deal
+
+    End Class
+
 End Namespace
