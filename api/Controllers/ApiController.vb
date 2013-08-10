@@ -23,7 +23,7 @@ Public Class ApiController
 
     <HttpGet()>
     <OutputCache(Duration:=60, VaryByParam:="show;e;type;callback")>
-    Function PasswirdV2(show As String, e As String, type As String) As ActionResult
+    Function Passwird(show As String, e As String, type As String) As ActionResult
         Dim showAsInt As Integer
         If String.IsNullOrEmpty(show) OrElse Not Integer.TryParse(show, showAsInt) OrElse show = 0 Then
             show = 50
@@ -36,7 +36,7 @@ Public Class ApiController
 
     <HttpGet()>
     <OutputCache(Duration:=60, VaryByParam:="q;e;type;callback")>
-    Function PasswirdSearchV2(q As String, e As String, type As String) As ActionResult
+    Function PasswirdSearch(q As String, e As String, type As String) As ActionResult
         Dim jsonString = New WebClient().DownloadString(String.Format(AppSettings("newPasswirdSearchUrl"), q))
 
         Return PasswirdSearchFetchV2(jsonString, e, type)
@@ -193,7 +193,7 @@ Public Class ApiController
 
     <HttpGet()>
     <OutputCache(Duration:=60, VaryByParam:="e;type;callback")>
-    Function Passwird(e As String, type As String) As ActionResult
+    Function PasswirdV1(e As String, type As String) As ActionResult
         Dim webGet = New HtmlWeb()
 
         webGet.UserAgent = AppSettings("passwirdUserAgent")
@@ -209,7 +209,7 @@ Public Class ApiController
 
     <HttpGet()>
     <OutputCache(Duration:=60, VaryByParam:="q;e;type;callback")>
-    Function PasswirdSearch(q As String, e As String, type As String) As ActionResult
+    Function PasswirdSearchV1(q As String, e As String, type As String) As ActionResult
         Dim webGet = New HtmlWeb()
 
         webGet.UserAgent = AppSettings("passwirdUserAgent")
@@ -317,7 +317,11 @@ Public Class ApiController
 
         For i As Integer = 0 To imageUri.Segments.Length - 1
             If i = imageUri.Segments.Length - 1 Then
-                path += AppSettings("newPasswirdImagePrefix") + imageUri.Segments(i)
+                If path.StartsWith("tm_") Or path.StartsWith("sm_") Or path.StartsWith("md_") Or path.StartsWith("og_") Then
+                    path += imageUri.Segments(i)
+                Else
+                    path += AppSettings("newPasswirdImagePrefix") + imageUri.Segments(i)
+                End If
             Else
                 path += imageUri.Segments(i)
             End If
