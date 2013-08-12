@@ -317,11 +317,10 @@ Public Class ApiController
 
         For i As Integer = 0 To imageUri.Segments.Length - 1
             If i = imageUri.Segments.Length - 1 Then
-                If path.StartsWith("tm_") Or path.StartsWith("sm_") Or path.StartsWith("md_") Or path.StartsWith("og_") Then
-                    path += imageUri.Segments(i)
-                Else
-                    path += AppSettings("newPasswirdImagePrefix") + imageUri.Segments(i)
-                End If
+                path += AppSettings("newPasswirdImagePrefix") +
+                        Regex.Replace(imageUri.Segments(i),
+                                      AppSettings("newPasswirdImagePrefixRegex"),
+                                      String.Empty)
             Else
                 path += imageUri.Segments(i)
             End If
