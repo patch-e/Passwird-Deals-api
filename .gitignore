@@ -149,6 +149,9 @@ $RECYCLE.BIN/
 
 # mccrager specific
 *.p12
-*.config
+App.config
+Connections.config
+Web.debug.config
+Web.release.config
 *.pfx
 *.sql
