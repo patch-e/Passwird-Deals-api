@@ -4,8 +4,7 @@
     Shared Sub RegisterRoutes(ByVal routes As RouteCollection)
         routes.IgnoreRoute("{resource}.axd/{*pathInfo}")
 
-        Dim actions = {"Passwird", "PasswirdSearch", "PasswirdDeal",
-                       "PasswirdV2", "PasswirdSearchV2", "PasswirdDealV2",
+        Dim actions = {"Passwird", "PasswirdSearch", "PasswirdDeal", "PasswirdDealV2",
                        "RegisterDeviceToken", "UnregisterDeviceToken",
                        "ResetBadgeCount", "ServerError"}
         routes.MapRoute(
