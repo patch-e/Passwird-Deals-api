@@ -6,14 +6,17 @@
     ''' <remarks></remarks>
     Public Class Deal
 
-        Public Property slug As String
-        Public Property title As String
-        Public Property text As String
-        Public Property sTitle As String
-        Public Property author As String
         Public Property _id As String
+        Public Property author As String
+        Public Property expirationDate As DateTime
+        Public Property price As String
+        Public Property sTitle As String
+        Public Property slug As String
+        Public Property text As String
+        Public Property title As String
         Public Property legacy As Boolean
         Public Property images As List(Of String)
+        Public Property free As Boolean
         Public Property hot As Boolean
         Public Property expired As Boolean
         Public Property dealDate As DateTime

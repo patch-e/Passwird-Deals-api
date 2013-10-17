@@ -60,6 +60,7 @@ Public Class ApiController
         Dim deals As New List(Of Deals.Version1.Deal)
         Dim deal As New Deals.Version1.Deal
 
+        deal.id = dDeal._id
         deal.body = dDeal.text
         deal.datePosted = dDeal.dealDate
         deal.headline = dDeal.title
@@ -75,6 +76,16 @@ Public Class ApiController
         End If
 
         deal.isExpired = dDeal.expired
+
+        deal.legacy = dDeal.legacy
+        deal.hot = dDeal.hot
+        deal.free = dDeal.free
+        deal.price = dDeal.price
+        deal.slug = dDeal.slug
+        deal.sHeadline = dDeal.sTitle
+        deal.author = dDeal.author
+        deal.expirationDate = dDeal.expirationDate
+        deal.images = dDeal.images
 
         deals.Add(deal)
 
@@ -118,6 +129,7 @@ Public Class ApiController
 
                 Dim deal As New Deals.Version1.Deal
 
+                deal.id = dDeal._id
                 deal.body = dDeal.text
                 deal.datePosted = dDate
                 deal.headline = dDeal.title
@@ -133,6 +145,16 @@ Public Class ApiController
                 End If
 
                 deal.isExpired = dDeal.expired
+
+                deal.legacy = dDeal.legacy
+                deal.hot = dDeal.hot
+                deal.free = dDeal.free
+                deal.price = dDeal.price
+                deal.slug = dDeal.slug
+                deal.sHeadline = dDeal.sTitle
+                deal.author = dDeal.author
+                deal.expirationDate = dDeal.expirationDate
+                deal.images = dDeal.images
 
                 deals.Add(deal)
             Next
@@ -169,6 +191,7 @@ Public Class ApiController
 
             Dim deal As New Deals.Version1.Deal
 
+            deal.id = s.obj._id
             deal.body = s.obj.text
             deal.datePosted = s.obj.dealDate
             deal.headline = s.obj.title
@@ -184,6 +207,16 @@ Public Class ApiController
             End If
 
             deal.isExpired = s.obj.expired
+
+            deal.legacy = s.obj.legacy
+            deal.hot = s.obj.hot
+            deal.free = s.obj.free
+            deal.price = s.obj.price
+            deal.slug = s.obj.slug
+            deal.sHeadline = s.obj.sTitle
+            deal.author = s.obj.author
+            deal.expirationDate = s.obj.expirationDate
+            deal.images = s.obj.images
 
             deals.Add(deal)
         Next
@@ -223,6 +256,10 @@ Public Class ApiController
     End Function
 
     Private Function PrependImagePrefix(imageUrl As String) As String
+        If Not imageUrl.StartsWith("http") Then
+            imageUrl = AppSettings("passwirdImageUrl") + imageUrl
+        End If
+
         Dim path As String = ""
         Dim imageUri = New Uri(imageUrl)
 
