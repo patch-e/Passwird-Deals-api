@@ -1,14 +1,12 @@
 ﻿Imports System.Net
 Imports System.Configuration.ConfigurationManager
-Imports HtmlAgilityPack
 Imports Newtonsoft.Json
-Imports System.Data.Objects
 
 <HandleError()>
 Public Class ApiController
     Inherits BaseController
 
-#Region " Production "
+#Region " Single Deal "
 
     <HttpGet()>
     <OutputCache(Duration:=3600, VaryByParam:="id;type;callback")>
@@ -16,150 +14,10 @@ Public Class ApiController
         Dim deals As New List(Of Deals.Version1.Deal)
         Dim deal = New Deals.Version1.Deal
 
-        Dim jsonString = New WebClient().DownloadString(String.Format(AppSettings("newPasswirdDealUrl"), id))
+        Dim jsonString = New WebClient().DownloadString(String.Format(AppSettings("passwirdUrl") + AppSettings("passwirdDealUrl"), id))
 
         Return PasswirdDealFetchV2(jsonString, type)
     End Function
-
-    <HttpGet()>
-    <OutputCache(Duration:=60, VaryByParam:="show;e;type;callback")>
-    Function Passwird(show As String, e As String, type As String) As ActionResult
-        Dim showAsInt As Integer
-        If String.IsNullOrEmpty(show) OrElse Not Integer.TryParse(show, showAsInt) OrElse show = 0 Then
-            show = 50
-        End If
-
-        Dim jsonString = New WebClient().DownloadString(String.Format(AppSettings("newPasswirdUrl"), show))
-
-        Return PasswirdFetchV2(jsonString, e, type)
-    End Function
-
-    <HttpGet()>
-    <OutputCache(Duration:=60, VaryByParam:="q;e;type;callback")>
-    Function PasswirdSearch(q As String, e As String, type As String) As ActionResult
-        Dim jsonString = New WebClient().DownloadString(String.Format(AppSettings("newPasswirdSearchUrl"), q))
-
-        Return PasswirdSearchFetchV2(jsonString, e, type)
-    End Function
-
-    Private Function PasswirdDealFetchV2(jsonString As String, type As String) As ActionResult
-        Dim dDeal As New Deals.Version2.Deal
-        Try
-            dDeal = JsonConvert.DeserializeObject(Of Deals.Version2.Deal)(jsonString)
-        Catch ex As Exception
-            Throw New Exception
-        End Try
-
-        Dim deals As New List(Of Deals.Version1.Deal)
-        Dim deal As New Deals.Version1.Deal
-
-        deal.body = dDeal.text
-        deal.datePosted = dDeal.dealDate
-        deal.headline = dDeal.title
-
-        If dDeal.images.Count > 0 Then
-            If Not dDeal.legacy Then
-                deal.image = PrependImagePrefix(dDeal.images.Item(0))
-            Else
-                deal.image = dDeal.images.Item(0)
-            End If
-        Else
-            deal.image = AppSettings("errorImageUrl")
-        End If
-
-        deal.isExpired = dDeal.expired
-
-        deals.Add(deal)
-
-        Return SerializeDeals(type, deals)
-    End Function
-
-    Private Function PasswirdFetchV2(jsonString As String, showExpiredDeals As String, type As String) As ActionResult
-        Dim newPasswirdDeals As New Deals.Version2.RootDeal
-        Try
-            newPasswirdDeals = JsonConvert.DeserializeObject(Of Deals.Version2.RootDeal)(jsonString)
-        Catch ex As Exception
-            Throw New Exception
-        End Try
-
-        Dim deals As New List(Of Deals.Version1.Deal)
-
-        'translate V2 Deals to V1 Deals
-        For Each d In newPasswirdDeals.data
-            Dim dDate As Date = d.Key
-            Dim dDeals As List(Of Deals.Version2.Deal) = d.Value
-
-            For Each dDeal In dDeals
-                If (showExpiredDeals = "0" And dDeal.expired) Then Continue For
-
-                Dim deal As New Deals.Version1.Deal
-
-                deal.body = dDeal.text
-                deal.datePosted = dDate
-                deal.headline = dDeal.title
-
-                If dDeal.images.Count > 0 Then
-                    If Not dDeal.legacy Then
-                        deal.image = PrependImagePrefix(dDeal.images.Item(0))
-                    Else
-                        deal.image = dDeal.images.Item(0)
-                    End If
-                Else
-                    deal.image = AppSettings("errorImageUrl")
-                End If
-
-                deal.isExpired = dDeal.expired
-
-                deals.Add(deal)
-            Next
-        Next
-
-        Return SerializeDeals(type, deals)
-    End Function
-
-    Private Function PasswirdSearchFetchV2(jsonString As String, showExpiredDeals As String, type As String) As ActionResult
-        Dim newPasswirdDeals As New List(Of Deals.Version2.SearchResult)
-        Try
-            newPasswirdDeals = JsonConvert.DeserializeObject(Of List(Of Deals.Version2.SearchResult))(jsonString)
-        Catch ex As Exception
-            Throw New Exception
-        End Try
-
-        Dim deals As New List(Of Deals.Version1.Deal)
-
-        'translate V2 Deals to V1 Deals
-        For Each s In newPasswirdDeals
-            If (showExpiredDeals = "0" And s.obj.expired) Then Continue For
-
-            Dim deal As New Deals.Version1.Deal
-
-            deal.body = s.obj.text
-            deal.datePosted = s.obj.dealDate
-            deal.headline = s.obj.title
-
-            If s.obj.images.Count > 0 Then
-                If Not s.obj.legacy Then
-                    deal.image = PrependImagePrefix(s.obj.images.Item(0))
-                Else
-                    deal.image = s.obj.images.Item(0)
-                End If
-            Else
-                deal.image = AppSettings("errorImageUrl")
-            End If
-
-            deal.isExpired = s.obj.expired
-
-            deals.Add(deal)
-        Next
-
-        Return SerializeDeals(type, deals)
-    End Function
-
-#End Region
-
-#Region " Archive "
-
-#Region " Passwird Version 1 "
 
     <HttpGet()>
     <OutputCache(Duration:=3600, VaryByParam:="id;type;callback")>
@@ -191,94 +49,180 @@ Public Class ApiController
         End Using
     End Function
 
-    <HttpGet()>
-    <OutputCache(Duration:=60, VaryByParam:="e;type;callback")>
-    Function PasswirdV1(e As String, type As String) As ActionResult
-        Dim webGet = New HtmlWeb()
-
-        webGet.UserAgent = AppSettings("passwirdUserAgent")
-        webGet.PreRequest = Function(webRequest As HttpWebRequest)
-                                webRequest.Timeout = AppSettings("timeout")
-                                Return True
-                            End Function
-
-        Dim document = webGet.Load(AppSettings("passwirdUrl"))
-
-        Return PasswirdFetchV1(document, e, type)
-    End Function
-
-    <HttpGet()>
-    <OutputCache(Duration:=60, VaryByParam:="q;e;type;callback")>
-    Function PasswirdSearchV1(q As String, e As String, type As String) As ActionResult
-        Dim webGet = New HtmlWeb()
-
-        webGet.UserAgent = AppSettings("passwirdUserAgent")
-        webGet.PreRequest = Function(webRequest As HttpWebRequest)
-                                webRequest.Timeout = AppSettings("timeout")
-                                Return True
-                            End Function
-
-        Dim document As HtmlAgilityPack.HtmlDocument
-
-        Dim postData As NameValueCollection = New NameValueCollection()
-        postData.Add("searchquery", HttpUtility.UrlEncode(q))
-        postData.Add("match", AppSettings("passwirdSearchMatch"))
-        postData.Add("resultnumber", AppSettings("passwirdSearchResultNumber"))
-
+    Private Function PasswirdDealFetchV2(jsonString As String, type As String) As ActionResult
+        Dim dDeal As New Deals.Version2.Deal
         Try
-            document = webGet.SubmitFormValues(postData, AppSettings("passwirdSearchUrl"))
+            dDeal = JsonConvert.DeserializeObject(Of Deals.Version2.Deal)(jsonString)
         Catch ex As Exception
             Throw New Exception
         End Try
 
-        Return PasswirdFetchV1(document, e, type)
-    End Function
+        Dim deals As New List(Of Deals.Version1.Deal)
+        Dim deal As New Deals.Version1.Deal
 
-    Private Function PasswirdFetchV1(document As HtmlAgilityPack.HtmlDocument, showExpiredDeals As String, type As String) As ActionResult
-        If document.DocumentNode IsNot Nothing Then
-            Dim divContent = document.DocumentNode.SelectNodes("//div[@id='content']")
+        deal.id = dDeal._id
+        deal.body = dDeal.text
+        deal.datePosted = dDeal.dealDate
+        deal.headline = dDeal.title
 
-            If divContent IsNot Nothing Then
-                Dim nodes = From tag In divContent.Nodes
-                            Where (tag.Name = "span" Or tag.Name = "div") And tag.InnerText <> "(expired)" And Not tag.InnerText.StartsWith("HOT")
-                            Select tag
-
-                Dim datePosted As DateTime
-                Dim deals As New List(Of Deals.Version1.Deal)
-
-                For Each n In nodes
-                    If n.Name = "div" Then
-                        If IsDate(n.InnerText) Then
-                            datePosted = CDate(n.InnerText)
-                        End If
-                    Else
-                        Dim deal = New Deals.Version1.Deal
-                        deal.headline = n.InnerText
-                        deal.datePosted = datePosted
-                        'this DOM parsing code is terrible, but then again so is the HTML at passwird...
-                        If n.NextSibling.NextSibling.OuterHtml.StartsWith("<span") Then
-                            deal.isExpired = True
-                            deal.body = n.NextSibling.NextSibling.NextSibling.NextSibling.Element("span").InnerHtml
-                            deal.image = AppSettings("passwirdUrl") + n.NextSibling.NextSibling.NextSibling.NextSibling.Element("img").Attributes("src").Value
-                        Else
-                            deal.isExpired = False
-                            deal.body = n.NextSibling.NextSibling.Element("span").InnerHtml
-                            deal.image = AppSettings("passwirdUrl") + n.NextSibling.NextSibling.Element("img").Attributes("src").Value
-                        End If
-                        If Not (showExpiredDeals = "0" And deal.isExpired) Then
-                            deals.Add(deal)
-                        End If
-                    End If
-                Next
-
-                Return SerializeDeals(type, deals)
+        If dDeal.images.Count > 0 Then
+            If Not dDeal.legacy Then
+                deal.image = PrependImagePrefix(dDeal.images.Item(0))
+            Else
+                deal.image = dDeal.images.Item(0)
             End If
+        Else
+            deal.image = AppSettings("errorImageUrl")
         End If
 
-        Return Nothing
+        deal.isExpired = dDeal.expired
+
+        deal.legacy = dDeal.legacy
+        deal.hot = dDeal.hot
+        deal.free = dDeal.free
+        deal.price = dDeal.price
+        deal.slug = dDeal.slug
+        deal.sHeadline = dDeal.sTitle
+        deal.author = dDeal.author
+        deal.expirationDate = dDeal.expirationDate
+        deal.images = dDeal.images
+
+        deals.Add(deal)
+
+        Return SerializeDeals(type, deals)
     End Function
 
 #End Region
+
+#Region " Front Page Deals "
+
+    <HttpGet()>
+    <OutputCache(Duration:=60, VaryByParam:="show;e;type;callback")>
+    Function Passwird(show As String, e As String, type As String) As ActionResult
+        Dim showAsInt As Integer
+        If String.IsNullOrEmpty(show) OrElse Not Integer.TryParse(show, showAsInt) OrElse show = 0 Then
+            show = 50
+        End If
+
+        Dim jsonString = New WebClient().DownloadString(String.Format(AppSettings("passwirdUrl") + AppSettings("passwirdDealsUrl"), show))
+
+        Return PasswirdFetchV2(jsonString, e, type)
+    End Function
+
+    Private Function PasswirdFetchV2(jsonString As String, showExpiredDeals As String, type As String) As ActionResult
+        Dim newPasswirdDeals As New Deals.Version2.RootDeal
+        Try
+            newPasswirdDeals = JsonConvert.DeserializeObject(Of Deals.Version2.RootDeal)(jsonString)
+        Catch ex As Exception
+            Throw New Exception
+        End Try
+
+        Dim deals As New List(Of Deals.Version1.Deal)
+
+        'translate V2 Deals to V1 Deals
+        For Each d In newPasswirdDeals.data
+            Dim dDate As Date = d.Key
+            Dim dDeals As List(Of Deals.Version2.Deal) = d.Value
+
+            For Each dDeal In dDeals
+                If (showExpiredDeals = "0" And dDeal.expired) Then Continue For
+
+                Dim deal As New Deals.Version1.Deal
+
+                deal.id = dDeal._id
+                deal.body = dDeal.text
+                deal.datePosted = dDate
+                deal.headline = dDeal.title
+
+                If dDeal.images.Count > 0 Then
+                    If Not dDeal.legacy Then
+                        deal.image = PrependImagePrefix(dDeal.images.Item(0))
+                    Else
+                        deal.image = dDeal.images.Item(0)
+                    End If
+                Else
+                    deal.image = AppSettings("errorImageUrl")
+                End If
+
+                deal.isExpired = dDeal.expired
+
+                deal.legacy = dDeal.legacy
+                deal.hot = dDeal.hot
+                deal.free = dDeal.free
+                deal.price = dDeal.price
+                deal.slug = dDeal.slug
+                deal.sHeadline = dDeal.sTitle
+                deal.author = dDeal.author
+                deal.expirationDate = dDeal.expirationDate
+                deal.images = dDeal.images
+
+                deals.Add(deal)
+            Next
+        Next
+
+        Return SerializeDeals(type, deals)
+    End Function
+
+#End Region
+
+#Region " Search Deals "
+
+    <HttpGet()>
+    <OutputCache(Duration:=60, VaryByParam:="q;e;type;callback")>
+    Function PasswirdSearch(q As String, e As String, type As String) As ActionResult
+        Dim jsonString = New WebClient().DownloadString(String.Format(AppSettings("passwirdUrl") + AppSettings("passwirdSearchUrl"), q))
+
+        Return PasswirdSearchFetchV2(jsonString, e, type)
+    End Function
+
+    Private Function PasswirdSearchFetchV2(jsonString As String, showExpiredDeals As String, type As String) As ActionResult
+        Dim newPasswirdDeals As New List(Of Deals.Version2.SearchResult)
+        Try
+            newPasswirdDeals = JsonConvert.DeserializeObject(Of List(Of Deals.Version2.SearchResult))(jsonString)
+        Catch ex As Exception
+            Throw New Exception
+        End Try
+
+        Dim deals As New List(Of Deals.Version1.Deal)
+
+        'translate V2 Deals to V1 Deals
+        For Each s In newPasswirdDeals
+            If (showExpiredDeals = "0" And s.obj.expired) Then Continue For
+
+            Dim deal As New Deals.Version1.Deal
+
+            deal.id = s.obj._id
+            deal.body = s.obj.text
+            deal.datePosted = s.obj.dealDate
+            deal.headline = s.obj.title
+
+            If s.obj.images.Count > 0 Then
+                If Not s.obj.legacy Then
+                    deal.image = PrependImagePrefix(s.obj.images.Item(0))
+                Else
+                    deal.image = s.obj.images.Item(0)
+                End If
+            Else
+                deal.image = AppSettings("errorImageUrl")
+            End If
+
+            deal.isExpired = s.obj.expired
+
+            deal.legacy = s.obj.legacy
+            deal.hot = s.obj.hot
+            deal.free = s.obj.free
+            deal.price = s.obj.price
+            deal.slug = s.obj.slug
+            deal.sHeadline = s.obj.sTitle
+            deal.author = s.obj.author
+            deal.expirationDate = s.obj.expirationDate
+            deal.images = s.obj.images
+
+            deals.Add(deal)
+        Next
+
+        Return SerializeDeals(type, deals)
+    End Function
 
 #End Region
 
@@ -312,14 +256,18 @@ Public Class ApiController
     End Function
 
     Private Function PrependImagePrefix(imageUrl As String) As String
+        If Not imageUrl.StartsWith("http") Then
+            imageUrl = AppSettings("passwirdImageUrl") + imageUrl
+        End If
+
         Dim path As String = ""
         Dim imageUri = New Uri(imageUrl)
 
         For i As Integer = 0 To imageUri.Segments.Length - 1
             If i = imageUri.Segments.Length - 1 Then
-                path += AppSettings("newPasswirdImagePrefix") +
+                path += AppSettings("passwirdImagePrefix") +
                         Regex.Replace(imageUri.Segments(i),
-                                      AppSettings("newPasswirdImagePrefixRegex"),
+                                      AppSettings("passwirdImagePrefixRegex"),
                                       String.Empty)
             Else
                 path += imageUri.Segments(i)
