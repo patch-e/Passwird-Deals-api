@@ -30,6 +30,15 @@
           <Property Name="image" Type="nvarchar(max)" Nullable="false" />
           <Property Name="isExpired" Type="bit" Nullable="false" />
           <Property Name="datePosted" Type="datetime" Nullable="false" />
+          <Property Name="legacy" Type="bit" Nullable="false" />
+          <Property Name="hot" Type="bit" Nullable="false" />
+          <Property Name="free" Type="bit" Nullable="false" />
+          <Property Name="price" Type="nvarchar(max)" />
+          <Property Name="slug" Type="nvarchar(max)" />
+          <Property Name="sHeadline" Type="nvarchar(max)" />
+          <Property Name="author" Type="nvarchar(max)" />
+          <Property Name="expirationDate" Type="datetime" />
+          <Property Name="images" Type="nvarchar(max)" />
         </EntityType>
       </Schema></edmx:StorageModels>
     <!-- CSDL content -->
@@ -60,6 +69,15 @@
           <Property Type="String" Name="image" Nullable="false" />
           <Property Type="Boolean" Name="isExpired" Nullable="false" />
           <Property Type="DateTime" Name="datePosted" Nullable="false" />
+          <Property Type="Boolean" Name="legacy" Nullable="false" />
+          <Property Type="Boolean" Name="hot" Nullable="false" />
+          <Property Type="Boolean" Name="free" Nullable="false" />
+          <Property Type="String" Name="price" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="slug" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="sHeadline" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="author" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Type="DateTime" Name="expirationDate" />
+          <Property Type="String" Name="images" MaxLength="Max" FixedLength="false" Unicode="true" />
         </EntityType>
       </Schema>
     </edmx:ConceptualModels>
@@ -82,7 +100,16 @@
     <EntitySetMapping Name="LastDeals">
       <EntityTypeMapping TypeName="IsTypeOf(PushModel.LastDeal)">
         <MappingFragment StoreEntitySet="LastDeals">
-          <ScalarProperty Name="id" ColumnName="id" />
+          <ScalarProperty Name="images" ColumnName="images" />
+                <ScalarProperty Name="expirationDate" ColumnName="expirationDate" />
+                <ScalarProperty Name="author" ColumnName="author" />
+                <ScalarProperty Name="sHeadline" ColumnName="sHeadline" />
+                <ScalarProperty Name="slug" ColumnName="slug" />
+                <ScalarProperty Name="price" ColumnName="price" />
+                <ScalarProperty Name="free" ColumnName="free" />
+                <ScalarProperty Name="hot" ColumnName="hot" />
+                <ScalarProperty Name="legacy" ColumnName="legacy" />
+                <ScalarProperty Name="id" ColumnName="id" />
           <ScalarProperty Name="headline" ColumnName="headline" />
           <ScalarProperty Name="body" ColumnName="body" />
           <ScalarProperty Name="image" ColumnName="image" />

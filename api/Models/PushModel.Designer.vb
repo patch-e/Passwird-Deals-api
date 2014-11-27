@@ -9,15 +9,16 @@
 '------------------------------------------------------------------------------
 
 Imports System
+Imports System.ComponentModel
+Imports System.Data.EntityClient
 Imports System.Data.Objects
 Imports System.Data.Objects.DataClasses
-Imports System.Data.EntityClient
-Imports System.ComponentModel
-Imports System.Xml.Serialization
+Imports System.Linq
 Imports System.Runtime.Serialization
+Imports System.Xml.Serialization
 
-<Assembly: EdmSchemaAttribute("45020165-6c75-4aad-a936-07ec7c80e0ab")>
 
+<Assembly: EdmSchemaAttribute("10a570d6-e517-480f-99d1-382b97c51983")>
 #Region "Contexts"
 
 ''' <summary>
@@ -33,7 +34,7 @@ Public Partial Class PushModelContainer
     ''' </summary>
     Public Sub New()
         MyBase.New("name=PushModelContainer", "PushModelContainer")
-    MyBase.ContextOptions.LazyLoadingEnabled = true
+        MyBase.ContextOptions.LazyLoadingEnabled = true
         OnContextCreated()
     End Sub
 
@@ -42,7 +43,7 @@ Public Partial Class PushModelContainer
     ''' </summary>
     Public Sub New(ByVal connectionString As String)
         MyBase.New(connectionString, "PushModelContainer")
-    MyBase.ContextOptions.LazyLoadingEnabled = true
+        MyBase.ContextOptions.LazyLoadingEnabled = true
         OnContextCreated()
     End Sub
 
@@ -51,7 +52,7 @@ Public Partial Class PushModelContainer
     ''' </summary>
     Public Sub New(ByVal connection As EntityConnection)
         MyBase.New(connection, "PushModelContainer")
-    MyBase.ContextOptions.LazyLoadingEnabled = true
+        MyBase.ContextOptions.LazyLoadingEnabled = true
         OnContextCreated()
     End Sub
 
@@ -95,6 +96,7 @@ Public Partial Class PushModelContainer
     Private _LastDeals As ObjectSet(Of LastDeal)
 
     #End Region
+
     #Region "AddTo Methods"
 
     ''' <summary>
@@ -112,9 +114,11 @@ Public Partial Class PushModelContainer
     End Sub
 
     #End Region
+
 End Class
 
 #End Region
+
 #Region "Entities"
 
 ''' <summary>
@@ -146,6 +150,7 @@ Public Partial Class DeviceToken
     End Function
 
     #End Region
+
     #Region "Primitive Properties"
 
     ''' <summary>
@@ -301,6 +306,7 @@ Public Partial Class DeviceToken
     End Sub
 
     #End Region
+
 End Class
 
 ''' <summary>
@@ -322,7 +328,10 @@ Public Partial Class LastDeal
     ''' <param name="image">Initial value of the image property.</param>
     ''' <param name="isExpired">Initial value of the isExpired property.</param>
     ''' <param name="datePosted">Initial value of the datePosted property.</param>
-    Public Shared Function CreateLastDeal(id As Global.System.Int32, headline As Global.System.String, body As Global.System.String, image As Global.System.String, isExpired As Global.System.Boolean, datePosted As Global.System.DateTime) As LastDeal
+    ''' <param name="legacy">Initial value of the legacy property.</param>
+    ''' <param name="hot">Initial value of the hot property.</param>
+    ''' <param name="free">Initial value of the free property.</param>
+    Public Shared Function CreateLastDeal(id As Global.System.Int32, headline As Global.System.String, body As Global.System.String, image As Global.System.String, isExpired As Global.System.Boolean, datePosted As Global.System.DateTime, legacy As Global.System.Boolean, hot As Global.System.Boolean, free As Global.System.Boolean) As LastDeal
         Dim lastDeal as LastDeal = New LastDeal
         lastDeal.id = id
         lastDeal.headline = headline
@@ -330,10 +339,14 @@ Public Partial Class LastDeal
         lastDeal.image = image
         lastDeal.isExpired = isExpired
         lastDeal.datePosted = datePosted
+        lastDeal.legacy = legacy
+        lastDeal.hot = hot
+        lastDeal.free = free
         Return lastDeal
     End Function
 
     #End Region
+
     #Region "Primitive Properties"
 
     ''' <summary>
@@ -488,8 +501,235 @@ Public Partial Class LastDeal
     Private Partial Sub OndatePostedChanged()
     End Sub
 
+    ''' <summary>
+    ''' No Metadata Documentation available.
+    ''' </summary>
+    <EdmScalarPropertyAttribute(EntityKeyProperty:=false, IsNullable:=false)>
+    <DataMemberAttribute()>
+    Public Property legacy() As Global.System.Boolean
+        Get
+            Return _legacy
+        End Get
+        Set
+            OnlegacyChanging(value)
+            ReportPropertyChanging("legacy")
+            _legacy = StructuralObject.SetValidValue(value)
+            ReportPropertyChanged("legacy")
+            OnlegacyChanged()
+        End Set
+    End Property
+
+    Private _legacy As Global.System.Boolean
+    Private Partial Sub OnlegacyChanging(value As Global.System.Boolean)
+    End Sub
+
+    Private Partial Sub OnlegacyChanged()
+    End Sub
+
+    ''' <summary>
+    ''' No Metadata Documentation available.
+    ''' </summary>
+    <EdmScalarPropertyAttribute(EntityKeyProperty:=false, IsNullable:=false)>
+    <DataMemberAttribute()>
+    Public Property hot() As Global.System.Boolean
+        Get
+            Return _hot
+        End Get
+        Set
+            OnhotChanging(value)
+            ReportPropertyChanging("hot")
+            _hot = StructuralObject.SetValidValue(value)
+            ReportPropertyChanged("hot")
+            OnhotChanged()
+        End Set
+    End Property
+
+    Private _hot As Global.System.Boolean
+    Private Partial Sub OnhotChanging(value As Global.System.Boolean)
+    End Sub
+
+    Private Partial Sub OnhotChanged()
+    End Sub
+
+    ''' <summary>
+    ''' No Metadata Documentation available.
+    ''' </summary>
+    <EdmScalarPropertyAttribute(EntityKeyProperty:=false, IsNullable:=false)>
+    <DataMemberAttribute()>
+    Public Property free() As Global.System.Boolean
+        Get
+            Return _free
+        End Get
+        Set
+            OnfreeChanging(value)
+            ReportPropertyChanging("free")
+            _free = StructuralObject.SetValidValue(value)
+            ReportPropertyChanged("free")
+            OnfreeChanged()
+        End Set
+    End Property
+
+    Private _free As Global.System.Boolean
+    Private Partial Sub OnfreeChanging(value As Global.System.Boolean)
+    End Sub
+
+    Private Partial Sub OnfreeChanged()
+    End Sub
+
+    ''' <summary>
+    ''' No Metadata Documentation available.
+    ''' </summary>
+    <EdmScalarPropertyAttribute(EntityKeyProperty:=false, IsNullable:=true)>
+    <DataMemberAttribute()>
+    Public Property price() As Global.System.String
+        Get
+            Return _price
+        End Get
+        Set
+            OnpriceChanging(value)
+            ReportPropertyChanging("price")
+            _price = StructuralObject.SetValidValue(value, true)
+            ReportPropertyChanged("price")
+            OnpriceChanged()
+        End Set
+    End Property
+
+    Private _price As Global.System.String
+    Private Partial Sub OnpriceChanging(value As Global.System.String)
+    End Sub
+
+    Private Partial Sub OnpriceChanged()
+    End Sub
+
+    ''' <summary>
+    ''' No Metadata Documentation available.
+    ''' </summary>
+    <EdmScalarPropertyAttribute(EntityKeyProperty:=false, IsNullable:=true)>
+    <DataMemberAttribute()>
+    Public Property slug() As Global.System.String
+        Get
+            Return _slug
+        End Get
+        Set
+            OnslugChanging(value)
+            ReportPropertyChanging("slug")
+            _slug = StructuralObject.SetValidValue(value, true)
+            ReportPropertyChanged("slug")
+            OnslugChanged()
+        End Set
+    End Property
+
+    Private _slug As Global.System.String
+    Private Partial Sub OnslugChanging(value As Global.System.String)
+    End Sub
+
+    Private Partial Sub OnslugChanged()
+    End Sub
+
+    ''' <summary>
+    ''' No Metadata Documentation available.
+    ''' </summary>
+    <EdmScalarPropertyAttribute(EntityKeyProperty:=false, IsNullable:=true)>
+    <DataMemberAttribute()>
+    Public Property sHeadline() As Global.System.String
+        Get
+            Return _sHeadline
+        End Get
+        Set
+            OnsHeadlineChanging(value)
+            ReportPropertyChanging("sHeadline")
+            _sHeadline = StructuralObject.SetValidValue(value, true)
+            ReportPropertyChanged("sHeadline")
+            OnsHeadlineChanged()
+        End Set
+    End Property
+
+    Private _sHeadline As Global.System.String
+    Private Partial Sub OnsHeadlineChanging(value As Global.System.String)
+    End Sub
+
+    Private Partial Sub OnsHeadlineChanged()
+    End Sub
+
+    ''' <summary>
+    ''' No Metadata Documentation available.
+    ''' </summary>
+    <EdmScalarPropertyAttribute(EntityKeyProperty:=false, IsNullable:=true)>
+    <DataMemberAttribute()>
+    Public Property author() As Global.System.String
+        Get
+            Return _author
+        End Get
+        Set
+            OnauthorChanging(value)
+            ReportPropertyChanging("author")
+            _author = StructuralObject.SetValidValue(value, true)
+            ReportPropertyChanged("author")
+            OnauthorChanged()
+        End Set
+    End Property
+
+    Private _author As Global.System.String
+    Private Partial Sub OnauthorChanging(value As Global.System.String)
+    End Sub
+
+    Private Partial Sub OnauthorChanged()
+    End Sub
+
+    ''' <summary>
+    ''' No Metadata Documentation available.
+    ''' </summary>
+    <EdmScalarPropertyAttribute(EntityKeyProperty:=false, IsNullable:=true)>
+    <DataMemberAttribute()>
+    Public Property expirationDate() As Nullable(Of Global.System.DateTime)
+        Get
+            Return _expirationDate
+        End Get
+        Set
+            OnexpirationDateChanging(value)
+            ReportPropertyChanging("expirationDate")
+            _expirationDate = StructuralObject.SetValidValue(value)
+            ReportPropertyChanged("expirationDate")
+            OnexpirationDateChanged()
+        End Set
+    End Property
+
+    Private _expirationDate As Nullable(Of Global.System.DateTime)
+    Private Partial Sub OnexpirationDateChanging(value As Nullable(Of Global.System.DateTime))
+    End Sub
+
+    Private Partial Sub OnexpirationDateChanged()
+    End Sub
+
+    ''' <summary>
+    ''' No Metadata Documentation available.
+    ''' </summary>
+    <EdmScalarPropertyAttribute(EntityKeyProperty:=false, IsNullable:=true)>
+    <DataMemberAttribute()>
+    Public Property images() As Global.System.String
+        Get
+            Return _images
+        End Get
+        Set
+            OnimagesChanging(value)
+            ReportPropertyChanging("images")
+            _images = StructuralObject.SetValidValue(value, true)
+            ReportPropertyChanged("images")
+            OnimagesChanged()
+        End Set
+    End Property
+
+    Private _images As Global.System.String
+    Private Partial Sub OnimagesChanging(value As Global.System.String)
+    End Sub
+
+    Private Partial Sub OnimagesChanged()
+    End Sub
+
     #End Region
+
 End Class
 
 #End Region
+
 

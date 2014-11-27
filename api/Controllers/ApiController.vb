@@ -37,6 +37,15 @@ Public Class ApiController
                     deal.image = lastDeal.image
                     deal.isExpired = lastDeal.isExpired
 
+                    deal.legacy = lastDeal.legacy
+                    deal.hot = lastDeal.hot
+                    deal.free = lastDeal.free
+                    deal.price = lastDeal.price
+                    deal.slug = lastDeal.slug
+                    deal.sHeadline = lastDeal.sHeadline
+                    deal.author = lastDeal.author
+                    deal.expirationDate = IIf(lastDeal.expirationDate.HasValue, lastDeal.expirationDate, Date.Now)
+
                     deals.Add(deal)
 
                     Return SerializeDeals(type, deals)
@@ -44,7 +53,7 @@ Public Class ApiController
 
                 Return ServerError()
             Catch ex As Exception
-                Throw New Exception
+                Throw ex
             End Try
         End Using
     End Function
@@ -54,7 +63,7 @@ Public Class ApiController
         Try
             dDeal = JsonConvert.DeserializeObject(Of Deals.Version2.Deal)(jsonString)
         Catch ex As Exception
-            Throw New Exception
+            Throw ex
         End Try
 
         Dim deals As New List(Of Deals.Version1.Deal)
@@ -114,7 +123,7 @@ Public Class ApiController
         Try
             newPasswirdDeals = JsonConvert.DeserializeObject(Of Deals.Version2.RootDeal)(jsonString)
         Catch ex As Exception
-            Throw New Exception
+            Throw ex
         End Try
 
         Dim deals As New List(Of Deals.Version1.Deal)
@@ -180,7 +189,7 @@ Public Class ApiController
         Try
             newPasswirdDeals = JsonConvert.DeserializeObject(Of List(Of Deals.Version2.SearchResult))(jsonString)
         Catch ex As Exception
-            Throw New Exception
+            Throw ex
         End Try
 
         Dim deals As New List(Of Deals.Version1.Deal)

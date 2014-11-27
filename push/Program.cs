@@ -48,9 +48,6 @@ class PasswirdPoller {
     /// to all registered devices for the new deal.
     /// </summary>
     private void PollDeals() {
-        //SendNotifications(112, "Test");
-        //return;
-
         bool isNewDeal = false, shouldSendNotification = false;
         LastDeal lastDeal;
         Deal currentDeal;
@@ -110,12 +107,22 @@ class PasswirdPoller {
                 using (PushModelContainer context = new PushModelContainer())
                 {
                     //save the current deal as a new last deal record in the database
+                    //v1
                     lastDeal = new LastDeal();
                     lastDeal.headline = currentDeal.headline;
                     lastDeal.datePosted = currentDeal.datePosted;
                     lastDeal.body = currentDeal.body;
                     lastDeal.image = currentDeal.image;
                     lastDeal.isExpired = currentDeal.isExpired;
+                    //v2
+                    lastDeal.legacy = currentDeal.legacy;
+                    lastDeal.hot = currentDeal.hot;
+                    lastDeal.free = currentDeal.free;
+                    lastDeal.price = currentDeal.price;
+                    lastDeal.slug = currentDeal.slug;
+                    lastDeal.sHeadline = currentDeal.sHeadline;
+                    lastDeal.author = currentDeal.author;
+                    lastDeal.expirationDate = currentDeal.expirationDate;
 
                     context.LastDeals.AddObject(lastDeal);
                     context.SaveChanges();
