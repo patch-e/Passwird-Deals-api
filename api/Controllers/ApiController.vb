@@ -37,6 +37,7 @@ Public Class ApiController
                     deal.image = lastDeal.image
                     deal.isExpired = lastDeal.isExpired
 
+                    deal.id = lastDeal.C_id
                     deal.legacy = lastDeal.legacy
                     deal.hot = lastDeal.hot
                     deal.free = lastDeal.free

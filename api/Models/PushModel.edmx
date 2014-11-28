@@ -39,6 +39,7 @@
           <Property Name="author" Type="nvarchar(max)" />
           <Property Name="expirationDate" Type="datetime" />
           <Property Name="images" Type="nvarchar(max)" />
+          <Property Name="_id" Type="nvarchar(max)" />
         </EntityType>
       </Schema></edmx:StorageModels>
     <!-- CSDL content -->
@@ -78,6 +79,7 @@
           <Property Type="String" Name="author" MaxLength="Max" FixedLength="false" Unicode="true" />
           <Property Type="DateTime" Name="expirationDate" />
           <Property Type="String" Name="images" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="C_id" MaxLength="Max" FixedLength="false" Unicode="true" />
         </EntityType>
       </Schema>
     </edmx:ConceptualModels>
@@ -100,7 +102,8 @@
     <EntitySetMapping Name="LastDeals">
       <EntityTypeMapping TypeName="IsTypeOf(PushModel.LastDeal)">
         <MappingFragment StoreEntitySet="LastDeals">
-          <ScalarProperty Name="images" ColumnName="images" />
+          <ScalarProperty Name="C_id" ColumnName="_id" />
+                <ScalarProperty Name="images" ColumnName="images" />
                 <ScalarProperty Name="expirationDate" ColumnName="expirationDate" />
                 <ScalarProperty Name="author" ColumnName="author" />
                 <ScalarProperty Name="sHeadline" ColumnName="sHeadline" />

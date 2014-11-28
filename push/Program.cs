@@ -115,6 +115,7 @@ class PasswirdPoller {
                     lastDeal.image = currentDeal.image;
                     lastDeal.isExpired = currentDeal.isExpired;
                     //v2
+                    lastDeal.C_id = currentDeal.id;
                     lastDeal.legacy = currentDeal.legacy;
                     lastDeal.hot = currentDeal.hot;
                     lastDeal.free = currentDeal.free;

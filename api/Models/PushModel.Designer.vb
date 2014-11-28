@@ -18,7 +18,7 @@ Imports System.Runtime.Serialization
 Imports System.Xml.Serialization
 
 
-<Assembly: EdmSchemaAttribute("10a570d6-e517-480f-99d1-382b97c51983")>
+<Assembly: EdmSchemaAttribute("33853283-9d9c-40cf-a2be-6e5e0fd2073c")>
 #Region "Contexts"
 
 ''' <summary>
@@ -724,6 +724,31 @@ Public Partial Class LastDeal
     End Sub
 
     Private Partial Sub OnimagesChanged()
+    End Sub
+
+    ''' <summary>
+    ''' No Metadata Documentation available.
+    ''' </summary>
+    <EdmScalarPropertyAttribute(EntityKeyProperty:=false, IsNullable:=true)>
+    <DataMemberAttribute()>
+    Public Property C_id() As Global.System.String
+        Get
+            Return _C_id
+        End Get
+        Set
+            OnC_idChanging(value)
+            ReportPropertyChanging("C_id")
+            _C_id = StructuralObject.SetValidValue(value, true)
+            ReportPropertyChanged("C_id")
+            OnC_idChanged()
+        End Set
+    End Property
+
+    Private _C_id As Global.System.String
+    Private Partial Sub OnC_idChanging(value As Global.System.String)
+    End Sub
+
+    Private Partial Sub OnC_idChanged()
     End Sub
 
     #End Region
