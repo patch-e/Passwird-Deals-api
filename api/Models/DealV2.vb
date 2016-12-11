@@ -33,7 +33,7 @@
         Public Property page As Integer
         Public Property count As Integer
         Public Property query As String
-        Public Property data As Dictionary(Of String, List(Of Deal))
+        Public Property results As Dictionary(Of String, List(Of Deal))
         Public Property view As String
         Public Property showExpired As Boolean
 

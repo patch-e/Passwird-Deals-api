@@ -130,7 +130,7 @@ Public Class ApiController
         Dim deals As New List(Of Deals.Version1.Deal)
 
         'translate V2 Deals to V1 Deals
-        For Each d In newPasswirdDeals.data
+        For Each d In newPasswirdDeals.results
             Dim dDate As Date = d.Key
             Dim dDeals As List(Of Deals.Version2.Deal) = d.Value
 
